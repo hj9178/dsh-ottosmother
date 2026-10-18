@@ -1,0 +1,15 @@
+# 把本包插入 profile 的 cordis 插件树。
+# id / name 必须与 package.json 的 name 一致，inject 与 lib/index.js 的 inject 对应。
+- insert:
+    - id: dsh-ottosmother
+      name: 'dsh-ottosmother'
+      inject: [systemPrompt]
+      config:
+        enabled: true
+        # 词表：word 是用户写的自造词，meaning 是它代表的含义。
+        # 插件只把这张表写进 system prompt，由模型自己理解与表达。
+        terms:
+          - word: '滚木'
+            meaning: '没有'
+          - word: '棍母'
+            meaning: '不存在'
