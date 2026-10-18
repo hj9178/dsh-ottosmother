@@ -1,7 +1,15 @@
 {
   "name": "dsh-ottosmother",
   "version": "0.4.0",
-  "description": "滚木插件：把「滚木 = 没有」「棍母 = 不存在」的用语规则写进 system prompt，由模型自己理解用户输入、自己组织自然的回复，不改写任何消息。",
+  "description": "A private glossary for the model: it reads 「滚木」 as 没有 and 「棍母」 as 不存在, and phrases its own replies naturally with those words. Injects one system-prompt section; rewrites nothing.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hj9178/dsh-ottosmother.git"
+  },
+  "homepage": "https://github.com/hj9178/dsh-ottosmother#readme",
+  "bugs": {
+    "url": "https://github.com/hj9178/dsh-ottosmother/issues"
+  },
   "keywords": [
     "deepseek",
     "deepseek-harness",
