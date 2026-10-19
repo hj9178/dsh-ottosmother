@@ -1,0 +1,45 @@
+title: AI 与工程协作
+description: 大模型、AI 产品、代码协作里常见的缩写和黑话
+terms:
+  - word: RAG
+    meaning: 检索增强生成，先查资料再把资料喂给模型作答（retrieval-augmented generation）
+  - word: 幻觉
+    meaning: 模型一本正经地编造不存在的内容（hallucination）
+  - word: LGTM
+    meaning: 看起来没问题，可以合并（looks good to me），代码审查用语
+  - word: prompt
+    meaning: 提示词，发给模型的指令和上下文
+  - word: token
+    meaning: 词元，模型计费和上下文长度的单位
+  - word: context window
+    meaning: 上下文窗口，模型一次能读入的内容上限
+  - word: fine-tune
+    meaning: 微调，用特定数据继续训练模型
+  - word: inference
+    meaning: 推理，模型实际生成答案的过程
+  - word: embedding
+    meaning: 向量化表示，把文字变成数字向量用于检索和比较
+  - word: diffusion
+    meaning: 扩散模型，逐噪声还原出图像的生成方式
+  - word: LLM
+    meaning: 大语言模型（large language model）
+  - word: agent
+    meaning: 智能体，能自己规划并调用工具完成任务的模型
+  - word: 越狱
+    meaning: 用特定话术绕过模型的安全限制（jailbreak）
+  - word: 对齐
+    meaning: 让模型的行为符合人类意图和价值观（alignment）
+  - word: 涌现
+    meaning: 模型规模变大后突然出现、小模型没有的能力
+  - word: 蒸馏
+    meaning: 用大模型教小模型，让小模型学会大模型的本事
+  - word: 量化
+    meaning: 用更低精度压缩模型，换取更小体积和更快速度
+  - word: MOE
+    meaning: 混合专家模型，按需只激活部分子网络（mixture of experts）
+  - word: 多模态
+    meaning: 能同时处理文字、图像、音频等多种输入
+  - word: 提示注入
+    meaning: 用文本诱导模型忽略原有指令（prompt injection）
+  - word: CoT
+    meaning: 思维链，让模型一步步写出推理过程（chain of thought）

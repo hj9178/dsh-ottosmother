@@ -1,5 +1,7 @@
 # 把本包插入 profile 的 cordis 插件树。
 # id / name 必须与 package.json 的 name 一致，inject 与 lib/index.js 的 inject 对应。
+# 设置页可改的字段（enabled / reminder / disabledGlossaries / terms）改完即时生效；
+# 这里的值只是初始值：词表本身放在 glossaries/*.yaml 与 ~/.dsh/ottosmother/*.yaml。
 - insert:
     - id: dsh-ottosmother
       name: 'dsh-ottosmother'
@@ -8,5 +10,13 @@
         enabled: true
         # 提醒强度：quiet | normal | strong
         reminder: normal
-        # 自定义词表路径（YAML）；留空使用包内 glossary.yml。
-        glossary: ''
+        # 设置页里被关掉的词表 id（如 builtin:moba.yaml），一般不用手改
+        disabledGlossaries: []
+        # 额外的用户词表目录（绝对路径）；默认目录 ~/.dsh/ottosmother 始终生效
+        glossaryDirs: []
+        # 内联词条：不放进 YAML 文件的临时词条
+        terms:
+          - word: 滚木
+            meaning: 没有
+          - word: 棍母
+            meaning: 不存在

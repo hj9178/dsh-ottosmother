@@ -1,7 +1,7 @@
 {
   "name": "dsh-ottosmother",
-  "version": "0.5.0",
-  "description": "A private glossary for the model, stored as YAML: it reads the words in the glossary as their meanings and phrases its own replies naturally with them. Registers one system-prompt section; rewrites nothing.",
+  "version": "0.6.0",
+  "description": "A private glossary for the model, stored as YAML: it reads the words in the glossary as their meanings and phrases its own replies naturally with them. Ships classified glossaries and a settings page; registers one system-prompt section; rewrites nothing.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hj9178/dsh-ottosmother.git"
@@ -18,24 +18,37 @@
     "cordis",
     "ottosmother",
     "self-lexicon",
-    "system-prompt"
+    "system-prompt",
+    "settings"
   ],
   "license": "MIT",
   "type": "module",
+  "sideEffects": [
+    "./client.js"
+  ],
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
+    "./client": "./client.js",
     "./package.json": "./package.json"
   },
   "files": [
     "lib",
-    "glossary.yml",
+    "client.js",
+    "glossaries",
     "cordis.patch.yml",
     "README.md"
   ],
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-locale"
+      ]
     }
   },
   "engines": {

@@ -1,0 +1,45 @@
+title: 开发与职场
+description: 程序员日常协作、发布上线和职场吐槽里的黑话
+terms:
+  - word: PR
+    meaning: 拉取请求，请求把分支改动合并进主干（pull request）
+  - word: CR
+    meaning: 代码审查（code review）
+  - word: WIP
+    meaning: 还没做完，先别合并（work in progress）
+  - word: nit
+    meaning: 小问题、小建议，不必较真
+  - word: bikeshed
+    meaning: 在无关紧要的细节上争论不休（bikeshedding）
+  - word: yak shaving
+    meaning: 为了做正事，被迫先解决一串前置问题
+  - word: rubber duck
+    meaning: 橡皮鸭调试，对着鸭子讲代码，讲着讲着自己就发现问题了
+  - word: 联调
+    meaning: 前后端把接口接起来一起调试
+  - word: 冒烟测试
+    meaning: 快速跑一遍核心功能，确认基本能用
+  - word: 回滚
+    meaning: 退回上一个可用版本
+  - word: 灰度
+    meaning: 先只对小部分用户发布，观察没问题再全量
+  - word: 线上
+    meaning: 生产环境，真实用户正在使用的系统
+  - word: hotfix
+    meaning: 线上紧急修复用的补丁
+  - word: 技术债
+    meaning: 为赶进度留下的隐患，以后要还
+  - word: 重构
+    meaning: 不改变外部行为的前提下调整代码结构
+  - word: 造轮子
+    meaning: 自己重写已经有人做过的东西
+  - word: 祖传代码
+    meaning: 没人敢动的老代码
+  - word: 屎山
+    meaning: 质量极差、改一处崩一片的代码堆
+  - word: 埋点
+    meaning: 在代码里加统计记录，用来分析用户行为
+  - word: 摸鱼
+    meaning: 上班时间偷懒
+  - word: 需求变更
+    meaning: 做到一半又要改需求，通常带吐槽意味
