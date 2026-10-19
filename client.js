@@ -17,7 +17,7 @@ window.__ModuleLoader__.load({
   factory(require) {
     const React = require('react')
     const h = React.createElement
-    const { useCallback, useEffect, useState, useSyncExternalStore } = React
+    const { useCallback, useEffect, useMemo, useState, useSyncExternalStore } = React
 
     /** 设置命名空间 = 本插件在 profile 里的条目 id。 */
     const NAMESPACE = 'dsh-ottosmother'
@@ -48,7 +48,9 @@ window.__ModuleLoader__.load({
         'reminder-normal': '中',
         'reminder-strong': '强',
         categories: '词表分类',
-        categoriesHint: '取消勾选即停用该分类；改 YAML 后点刷新即可生效。',
+        categoriesHint: '勾选即启用该分类，取消勾选即停用；改 YAML 后点刷新即可生效。',
+        fileOn: '已启用',
+        fileOff: '已关闭',
         folders: '词表文件夹',
         userDir: '个人词表（把你的 YAML 放这里）',
         builtinDir: '内置分类词表',
@@ -72,7 +74,9 @@ window.__ModuleLoader__.load({
         'reminder-normal': 'Normal',
         'reminder-strong': 'Strong',
         categories: 'Glossary files',
-        categoriesHint: 'Uncheck to disable a group; edit the YAML then refresh.',
+        categoriesHint: 'Check a group to use it, uncheck to disable it; refresh after editing YAML.',
+        fileOn: 'On',
+        fileOff: 'Off',
         folders: 'Folders',
         userDir: 'Personal glossary (put your YAML here)',
         builtinDir: 'Built-in groups',
@@ -94,11 +98,18 @@ window.__ModuleLoader__.load({
       '.dot-card{border:.5px solid var(--dsw-alias-border-l2);border-radius:var(--dsw-radius-md);background:var(--dsw-alias-bg-module-platform);display:flex;flex-direction:column}',
       '.dot-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:.5px solid var(--dsw-alias-border-l2)}',
       '.dot-row:last-child{border-bottom:none}',
+      '.dot-rowButton{width:100%;text-align:left;border:0;border-bottom:.5px solid var(--dsw-alias-border-l2);background:transparent;font:inherit;color:inherit;cursor:pointer}',
+      '.dot-rowButton:last-child{border-bottom:none}',
+      '.dot-rowButton:hover{background:var(--dsw-alias-interactive-bg-hover)}',
+      '.dot-rowButton:disabled{cursor:default;opacity:.6}',
+      '.dot-native{flex:none;width:18px;height:18px;margin:0;accent-color:#4c7dff;cursor:pointer}',
+      '.dot-rowOff .dot-rowTitle{opacity:.55}',
+      '.dot-state{flex:none;font-size:12px;line-height:18px;color:var(--dsw-alias-label-primary);opacity:.6}',
       '.dot-rowText{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}',
       '.dot-rowTitle{color:var(--dsw-alias-label-primary);font-size:14px;line-height:22px}',
       '.dot-rowHint{color:var(--dsw-alias-label-primary);opacity:.6;font-size:12px;line-height:18px}',
       '.dot-switch{position:relative;flex:none;width:36px;height:20px;border-radius:10px;border:none;padding:0;cursor:pointer;background:var(--dsw-alias-border-l2);transition:background .15s}',
-      '.dot-switchOn{background:var(--dsw-alias-text-accent)}',
+      '.dot-switchOn{background:#4c7dff}',
       '.dot-switch:disabled{cursor:default;opacity:.5}',
       '.dot-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .15s}',
       '.dot-switchOn .dot-knob{transform:translateX(16px)}',
@@ -150,14 +161,22 @@ window.__ModuleLoader__.load({
     }
 
     /**
+     * 从 configForms 快照取提醒强度（未就绪或非法值返回 undefined）。
+     * @param snapshot - configForms 快照。
+     */
+    function readReminder(snapshot) {
+      const raw = snapshot?.value?.reminder
+      if (typeof raw !== 'string') return undefined
+      const normalized = raw.trim().toLowerCase()
+      return REMINDER_OPTIONS.some((option) => option.id === normalized) ? normalized : undefined
+    }
+
+    /**
      * 从 configForms 快照取提醒强度（与 host 侧归一规则一致）。
      * @param snapshot - configForms 快照。
      */
     function pickReminder(snapshot) {
-      const value = snapshot?.value
-      const raw = value !== null && typeof value === 'object' ? value.reminder : undefined
-      const normalized = typeof raw === 'string' ? raw.trim().toLowerCase() : raw
-      return REMINDER_OPTIONS.some((option) => option.id === normalized) ? normalized : DEFAULT_REMINDER
+      return readReminder(snapshot) ?? DEFAULT_REMINDER
     }
 
     /**
@@ -215,7 +234,9 @@ window.__ModuleLoader__.load({
         async (field, value) => {
           setBusy(true)
           try {
-            await form.set(field, value)
+            const accepted = await form.set(field, value)
+            if (accepted === false) setError(translate('saveFailed'))
+            else setError(null)
             await reload()
           } catch {
             setError(translate('saveFailed'))
@@ -227,14 +248,22 @@ window.__ModuleLoader__.load({
       )
 
       const disabled = busy || !writable
-      const enabled = catalog?.enabled ?? true
-      const reminder = catalog?.reminder ?? pickReminder(snapshot)
+      const enabled =
+        typeof snapshot?.value?.enabled === 'boolean' ? snapshot.value.enabled : (catalog?.enabled ?? true)
+      const reminder = readReminder(snapshot) ?? catalog?.reminder ?? DEFAULT_REMINDER
       const files = Array.isArray(catalog?.files) ? catalog.files : []
       const warnings = Array.isArray(catalog?.warnings) ? catalog.warnings : []
+      /** 快照里的禁用清单（写入后立即更新，不依赖 catalog 重读）。 */
+      const disabledIds = useMemo(() => {
+        const value = snapshot?.value
+        const list = value !== null && typeof value === 'object' ? value.disabledGlossaries : undefined
+        return Array.isArray(list) ? new Set(list.filter((item) => typeof item === 'string')) : null
+      }, [snapshot])
+      const isFileOn = (file) => (disabledIds === null ? file.enabled : !disabledIds.has(file.id))
 
       const toggleFile = (file) => {
-        const off = new Set(files.filter((item) => !item.enabled).map((item) => item.id))
-        if (file.enabled) off.add(file.id)
+        const off = new Set(files.filter((item) => !isFileOn(item)).map((item) => item.id))
+        if (isFileOn(file)) off.add(file.id)
         else off.delete(file.id)
         void write('disabledGlossaries', [...off])
       }
@@ -251,10 +280,22 @@ window.__ModuleLoader__.load({
         }
       }
 
-      const rows = files.map((file) =>
-        h(
-          'div',
-          { key: file.id, className: 'dot-row' },
+      const rows = files.map((file) => {
+        const on = isFileOn(file)
+        return h(
+          'label',
+          {
+            key: file.id,
+            className: on ? 'dot-row dot-rowButton' : 'dot-row dot-rowButton dot-rowOff',
+          },
+          h('input', {
+            type: 'checkbox',
+            className: 'dot-native',
+            checked: on,
+            disabled,
+            'aria-label': file.title,
+            onChange: () => toggleFile(file),
+          }),
           h(
             'div',
             { className: 'dot-rowText' },
@@ -265,14 +306,9 @@ window.__ModuleLoader__.load({
               `${file.file} · ${file.count} ${translate('terms')}${file.description ? ` · ${file.description}` : ''}`,
             ),
           ),
-          h(Switch, {
-            checked: file.enabled,
-            disabled,
-            label: file.title,
-            onChange: () => toggleFile(file),
-          }),
-        ),
-      )
+          h('span', { className: 'dot-state' }, translate(on ? 'fileOn' : 'fileOff')),
+        )
+      })
 
       return h(
         'section',
@@ -437,7 +473,7 @@ window.__ModuleLoader__.load({
         )
       },
       /** 供单测锁定：页面读写用的路径与档位表。 */
-      _internals: { REMINDER_OPTIONS, pickReminder, api },
+      _internals: { REMINDER_OPTIONS, pickReminder, readReminder, api },
     }
   },
 })
