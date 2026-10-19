@@ -1,37 +1,50 @@
 # dsh-ottosmother
 
-A DeepSeek Harness plugin that gives the model a private glossary: when you
-write 「滚木」 it should read it as 「没有」, when you write 「棍母」 it should read
-it as 「不存在」, and when it needs to say "there is none" it should phrase the
-whole sentence naturally with one of those words instead of mechanically
-swapping a single token.
+A DeepSeek Harness plugin that gives the model a private glossary. The user
+writes 「滚木」 meaning 「没有」 and 「棍母」 meaning 「不存在」; the model is told to
+read those words as their meaning and, when it needs to express that meaning,
+to phrase the whole sentence naturally with a glossary word instead of
+mechanically swapping a single token.
 
 The plugin only adds one **system prompt section**. It does not rewrite user
 input, does not wrap model output, and does not register any message hooks.
 
+## Layout
+
 ```
-- 「滚木」= 没有
-- 「棍母」= 不存在
+glossary.yml      # the word list (YAML, editable / replaceable)
+lib/config.js     # schema, YAML loading, prompt text builder
+lib/prompt.js     # system prompt section registration
+lib/index.js      # plugin entry
 ```
 
-- Reading: 「说了个棍母」→ the user is saying nothing was said; 「这里有滚木」→
-  there is nothing here.
-- Writing: 「这里没有东西」→ 「这里有棍母」; 「这个功能不存在」→ 「这个功能是棍母」.
-- Code, commands, paths, URLs and error text are asked to stay verbatim.
+The word list lives in `glossary.yml` — not in the code:
 
-Whether the model actually uses the words is its own judgement — this is a
-prompt-level rule, not a hard replacement.
+```yaml
+terms:
+  - word: 滚木
+    meaning: 没有
+  - word: 棍母
+    meaning: 不存在
+# Add more entries here; the prompt picks them up on the next turn.
+```
+
+The prompt itself contains only the glossary and generic rules (read the word
+as its meaning, use the words when expressing that meaning, keep code /
+commands / paths / URLs / error text verbatim). No example sentences are
+hard-coded — how a particular word should be understood is left to the model.
 
 ## How it works
 
 | Extension point | What it does |
 | --- | --- |
-| `systemPrompt.section` | Injects the 「固定用语」 section (glossary + reading rules + writing rules + verbatim rule) |
+| `systemPrompt.section` | Injects the 「私密词表」 section: glossary lines + generic reading/writing rules |
 
 Section name `dsh-ottosmother/glossary`, order 50. The text is produced by a
 function and re-read from config on every prompt assembly; when the plugin is
-disabled or the term list is empty, the section text is an empty string and
-nothing is injected.
+disabled, the glossary file is missing, or the word list is empty, the section
+text is an empty string and nothing is injected. A broken YAML file is logged
+once instead of crashing the session.
 
 ## Install
 
@@ -58,16 +71,18 @@ Adjust it in the profile's `cordis.patch.yml`:
       inject: [systemPrompt]
       config:
         enabled: true
-        terms:
-          - word: '滚木'
-            meaning: '没有'
-          - word: '棍母'
-            meaning: '不存在'
+        reminder: normal
+        glossary: ''
+        terms: []
 ```
 
 - `enabled`: master switch; when false nothing is injected.
-- `terms`: the glossary. `word` is what the user writes, `meaning` is what it
-  stands for.
+- `reminder`: how strongly the model is nudged. `quiet` gives the list plus one
+  line; `normal` explains reading and writing; `strong` explicitly asks the
+  model to actively use the words.
+- `glossary`: path to an external YAML word list (empty = the bundled
+  `glossary.yml`).
+- `terms`: inline word list, takes precedence over the YAML file when non-empty.
 
 ## Known behaviour
 
@@ -75,6 +90,8 @@ Adjust it in the profile's `cordis.patch.yml`:
   「没有」, and it may rewrite when explicitly asked.
 - Code is not protected by code — the rule only asks the model to keep it
   verbatim.
+- Other LLM calls in the harness (title generation, etc.) receive the same
+  system prompt section.
 
 ## License
 
@@ -86,27 +103,44 @@ MIT.
 
 给 DeepSeek Harness 的插件，把一份私人词表写进 system prompt：用户写
 「滚木」要理解成「没有」，写「棍母」要理解成「不存在」；模型要表达「没有 /
-不存在」时，用这些词把整句改写得自然通顺，而不是机械扣掉两个字再塞一个词。
+不存在」时，用这些词把整句组织得自然通顺，而不是机械扣掉两个字再塞一个词。
 
 插件只加一个 **system prompt 段落**：不改用户输入、不包装模型输出、不注册任何
 消息钩子。
 
-- **理解用户**：「这里有滚木」→ 理解为「这里什么也没有」；「说了个棍母」→
-  理解为「什么也没说」。
-- **模型回复**：要表达「没有 / 不存在」时，自己把整句改写通顺，例如
-  「这里没有东西」→「这里有棍母」，而不是「这里滚木东西」这种生硬结果。
-- 代码、命令、路径、URL、报错信息要求原样保留。
+## 结构
 
-模型是否真的使用这些词，是模型自己的判断——这是提示词层面的规则，不是硬替换。
+```
+glossary.yml      # 词表（YAML，可直接编辑或替换）
+lib/config.js     # schema、YAML 解析、提示词生成
+lib/prompt.js     # system prompt 段落注册
+lib/index.js      # 插件入口
+```
+
+词表在 `glossary.yml` 里，不写死在代码里：
+
+```yaml
+terms:
+  - word: 滚木
+    meaning: 没有
+  - word: 棍母
+    meaning: 不存在
+# 在这里继续加词条，下一轮对话即生效。
+```
+
+提示词本身只有词表和通用规则（按含义理解、需要时用这些词表达、代码 / 命令 /
+路径 / URL / 报错原文保持原样），不写死任何例句——某个词具体该怎么理解，交给
+模型自己判断。
 
 ## 生效方式
 
 | 扩展点 | 做什么 |
 | --- | --- |
-| `systemPrompt.section` | 注入「固定用语」说明（词典 + 理解规则 + 表达规则 + 代码原样规则） |
+| `systemPrompt.section` | 注入「私密词表」段落：词表 + 通用理解/表达规则 |
 
 段落名 `dsh-ottosmother/glossary`，order 50。文本由函数提供，每次组装 prompt
-时现读配置；插件关闭或词表为空时返回空串，等价于不注入。
+时现读配置；插件关闭、词表文件缺失或词表为空时返回空串，等价于不注入。YAML
+损坏只记一次日志，不会让会话崩溃。
 
 ## 安装
 
@@ -133,20 +167,22 @@ dsh plugin --profile <profile> add github:hj9178/dsh-ottosmother
       inject: [systemPrompt]
       config:
         enabled: true
-        terms:
-          - word: '滚木'
-            meaning: '没有'
-          - word: '棍母'
-            meaning: '不存在'
+        reminder: normal
+        glossary: ''
+        terms: []
 ```
 
 - `enabled`：总开关，关掉后不注入任何内容。
-- `terms`：词表，`word` 是用户写的自造词，`meaning` 是它代表的含义。
+- `reminder`：提醒强度。`quiet` 只给词表加一行；`normal` 说明理解与表达；
+  `strong` 明确要求模型主动使用这些词。
+- `glossary`：外部词表 YAML 路径（留空用包内 `glossary.yml`）。
+- `terms`：内联词表，非空时优先于 YAML 文件。
 
 ## 已知行为
 
 - 模型是否用「滚木 / 棍母」表达由模型自己判断，可能偶尔说成「没有」。
 - 代码没有被代码保护——规则只是要求模型自己保持原文。
+- 会话里其它 LLM 调用（标题生成等）也会带上这个段落。
 
 ## License
 

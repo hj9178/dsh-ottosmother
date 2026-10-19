@@ -1,7 +1,7 @@
 {
   "name": "dsh-ottosmother",
-  "version": "0.4.0",
-  "description": "A private glossary for the model: it reads 「滚木」 as 没有 and 「棍母」 as 不存在, and phrases its own replies naturally with those words. Injects one system-prompt section; rewrites nothing.",
+  "version": "0.5.0",
+  "description": "A private glossary for the model, stored as YAML: it reads the words in the glossary as their meanings and phrases its own replies naturally with them. Registers one system-prompt section; rewrites nothing.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hj9178/dsh-ottosmother.git"
@@ -29,6 +29,7 @@
   },
   "files": [
     "lib",
+    "glossary.yml",
     "cordis.patch.yml",
     "README.md"
   ],
@@ -39,6 +40,9 @@
   },
   "engines": {
     "node": ">=22.19"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
   },
   "peerDependencies": {
     "@deepseek-ai/schemastery": ">=3.18.3"
