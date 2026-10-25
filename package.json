@@ -1,6 +1,6 @@
 {
   "name": "dsh-ottosmother",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "A private glossary for the model, stored as YAML: it reads the words in the glossary as their meanings and phrases its own replies naturally with them. Ships classified glossaries and a settings page; registers one system-prompt section; rewrites nothing.",
   "repository": {
     "type": "git",
