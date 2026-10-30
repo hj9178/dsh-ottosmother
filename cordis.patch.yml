@@ -1,11 +1,11 @@
 # 把本包插入 profile 的 cordis 插件树。
 # id / name 必须与 package.json 的 name 一致，inject 与 lib/index.js 的 inject 对应。
-# 设置页可改的字段（enabled / reminder / disabledGlossaries / terms）改完即时生效；
+# 设置页可改的字段（enabled / reminder / disabledGlossaries / autoLearn）改完即时生效；
 # 这里的值只是初始值：词表本身放在 glossaries/*.yaml 与 ~/.dsh/ottosmother/*.yaml。
 - insert:
     - id: dsh-ottosmother
       name: 'dsh-ottosmother'
-      inject: [systemPrompt]
+      inject: [systemPrompt, llm]
       config:
         enabled: true
         # 提醒强度：quiet | normal | strong
@@ -14,6 +14,10 @@
         disabledGlossaries: []
         # 额外的用户词表目录（绝对路径）；默认目录 ~/.dsh/ottosmother 始终生效
         glossaryDirs: []
+        # 每轮用户输入调用一次模型，把「X 是 Y 的意思」这类明确声明收进本地词表
+        autoLearn: true
+        # 自动学习写入的文件（位于个人词表目录内，自动创建）
+        learnFile: learned.yaml
         # 内联词条：不放进 YAML 文件的临时词条
         terms:
           - word: 滚木
